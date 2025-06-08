@@ -1,24 +1,5 @@
 package dev.langchain4j.model.googleai;
 
-import dev.langchain4j.Experimental;
-import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.exception.UnsupportedFeatureException;
-import dev.langchain4j.model.ModelProvider;
-import dev.langchain4j.model.chat.Capability;
-import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.chat.listener.ChatModelListener;
-import dev.langchain4j.model.chat.listener.ChatModelRequestContext;
-import dev.langchain4j.model.chat.request.ChatRequest;
-import dev.langchain4j.model.chat.request.ChatRequestParameters;
-import dev.langchain4j.internal.ChatRequestValidationUtils;
-import dev.langchain4j.model.chat.request.ResponseFormat;
-import dev.langchain4j.model.chat.request.ResponseFormatType;
-import dev.langchain4j.model.chat.response.ChatResponse;
-import dev.langchain4j.model.chat.response.ChatResponseMetadata;
-import dev.langchain4j.model.output.FinishReason;
-import dev.langchain4j.model.output.Response;
-import dev.langchain4j.model.output.TokenUsage;
-
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -28,20 +9,43 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import dev.langchain4j.Experimental;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.exception.UnsupportedFeatureException;
+import dev.langchain4j.internal.ChatRequestValidationUtils;
 import static dev.langchain4j.internal.RetryUtils.withRetryMappingExceptions;
 import static dev.langchain4j.internal.Utils.getOrDefault;
+import dev.langchain4j.model.ModelProvider;
 import static dev.langchain4j.model.ModelProvider.GOOGLE_AI_GEMINI;
+import dev.langchain4j.model.ThinkingConfig;
+import dev.langchain4j.model.chat.Capability;
 import static dev.langchain4j.model.chat.Capability.RESPONSE_FORMAT_JSON_SCHEMA;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.listener.ChatModelListener;
+import dev.langchain4j.model.chat.listener.ChatModelRequestContext;
+import dev.langchain4j.model.chat.request.ChatRequest;
+import dev.langchain4j.model.chat.request.ChatRequestParameters;
+import dev.langchain4j.model.chat.request.ResponseFormat;
+import dev.langchain4j.model.chat.request.ResponseFormatType;
+import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.chat.response.ChatResponseMetadata;
 import static dev.langchain4j.model.googleai.FinishReasonMapper.fromGFinishReasonToFinishReason;
 import static dev.langchain4j.model.googleai.PartsAndContentsMapper.fromGPartsToAiMessage;
+import dev.langchain4j.model.output.FinishReason;
+import dev.langchain4j.model.output.Response;
+import dev.langchain4j.model.output.TokenUsage;
 
 @Experimental
 public class GoogleAiGeminiChatModel extends BaseGeminiChatModel implements ChatModel {
+
+    private Integer thinkingBudget;
+    private Boolean includethoughts;
 
     public GoogleAiGeminiChatModel(
             String apiKey, String modelName,
             Integer maxRetries,
             Double temperature, Integer topK, Double topP,
+            Integer thinkingBudget, Boolean includeThoughts,
             Integer maxOutputTokens, Duration timeout,
             ResponseFormat responseFormat,
             List<String> stopSequences, GeminiFunctionCallingConfig toolConfig,
@@ -54,6 +58,10 @@ public class GoogleAiGeminiChatModel extends BaseGeminiChatModel implements Chat
                 responseFormat, stopSequences, toolConfig, allowCodeExecution,
                 includeCodeExecutionOutput, logRequestsAndResponses, safetySettings,
                 listeners, maxRetries);
+
+        this.thinkingBudget = thinkingBudget;
+        this.includethoughts = includeThoughts;
+        
     }
 
     public static GoogleAiGeminiChatModelBuilder builder() {
@@ -73,6 +81,13 @@ public class GoogleAiGeminiChatModel extends BaseGeminiChatModel implements Chat
                 getOrDefault(parameters.responseFormat(), this.responseFormat),
                 chatRequest.parameters()
         );
+        if(thinkingBudget==null){
+            this.thinkingBudget = 0;
+        }
+        ThinkingConfig thinkingConfig = new ThinkingConfig(thinkingBudget, includethoughts);
+        request.getGenerationConfig().setThinkingConfig(thinkingConfig);
+
+        //System.out.println(request); //Can be use to see the request to the geminiAPI
 
         ChatRequest listenerRequest = createListenerRequest(
                 parameters.modelName(),
@@ -179,6 +194,8 @@ public class GoogleAiGeminiChatModel extends BaseGeminiChatModel implements Chat
         private Double temperature;
         private Integer topK;
         private Double topP;
+        private Integer thinkingBudget;
+        private Boolean includeThoughts;
         private Integer maxOutputTokens;
         private Duration timeout;
         private ResponseFormat responseFormat;
@@ -235,6 +252,15 @@ public class GoogleAiGeminiChatModel extends BaseGeminiChatModel implements Chat
             return this;
         }
 
+        public GoogleAiGeminiChatModelBuilder thinkingBudget(Integer thinkingBudget) {
+            this.thinkingBudget = thinkingBudget;
+            return this;
+        }
+        public GoogleAiGeminiChatModelBuilder includeThoughts(Boolean includeThoughts) {
+            this.includeThoughts = includeThoughts;
+            return this;
+        }
+
         public GoogleAiGeminiChatModelBuilder maxOutputTokens(Integer maxOutputTokens) {
             this.maxOutputTokens = maxOutputTokens;
             return this;
@@ -286,7 +312,7 @@ public class GoogleAiGeminiChatModel extends BaseGeminiChatModel implements Chat
         }
 
         public GoogleAiGeminiChatModel build() {
-            return new GoogleAiGeminiChatModel(this.apiKey, this.modelName, this.maxRetries, this.temperature, this.topK, this.topP, this.maxOutputTokens, this.timeout, this.responseFormat, this.stopSequences, this.toolConfig, this.allowCodeExecution, this.includeCodeExecutionOutput, this.logRequestsAndResponses, this.safetySettings, this.listeners);
+            return new GoogleAiGeminiChatModel(this.apiKey, this.modelName, this.maxRetries, this.temperature, this.topK, this.topP,this.thinkingBudget, this.includeThoughts, this.maxOutputTokens, this.timeout, this.responseFormat, this.stopSequences, this.toolConfig, this.allowCodeExecution, this.includeCodeExecutionOutput, this.logRequestsAndResponses, this.safetySettings, this.listeners);
         }
     }
 }

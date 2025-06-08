@@ -1,10 +1,12 @@
 package dev.langchain4j.model.googleai;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.List;
+import dev.langchain4j.model.ThinkingConfig;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class GeminiGenerationConfig {
@@ -16,6 +18,8 @@ class GeminiGenerationConfig {
     private Double temperature = 1.0;
     private Integer topK = 64;
     private Double topP = 0.95;
+    private ThinkingConfig thinkingConfig ;
+
 
     @JsonCreator
     GeminiGenerationConfig(
@@ -26,7 +30,8 @@ class GeminiGenerationConfig {
             @JsonProperty("maxOutputTokens") Integer maxOutputTokens,
             @JsonProperty("temperature") Double temperature,
             @JsonProperty("topK") Integer topK,
-            @JsonProperty("topP") Double topP) {
+            @JsonProperty("topP") Double topP,
+            @JsonProperty("thinkingConfig") ThinkingConfig thinkingConfig) {
         this.stopSequences = stopSequences;
         this.responseMimeType = responseMimeType;
         this.responseSchema = responseSchema;
@@ -35,6 +40,7 @@ class GeminiGenerationConfig {
         this.temperature = temperature;
         this.topK = topK;
         this.topP = topP;
+        this.thinkingConfig = thinkingConfig;
     }
 
     public static GeminiGenerationConfigBuilder builder() {
@@ -73,6 +79,10 @@ class GeminiGenerationConfig {
         return this.topP;
     }
 
+    public ThinkingConfig getThinkingConfig(){
+        return thinkingConfig;
+    }
+
     public void setStopSequences(List<String> stopSequences) {
         this.stopSequences = stopSequences;
     }
@@ -103,6 +113,11 @@ class GeminiGenerationConfig {
 
     public void setTopP(Double topP) {
         this.topP = topP;
+    }
+
+    public void setThinkingConfig(ThinkingConfig thinkingConfig
+    ){
+        this.thinkingConfig = thinkingConfig;
     }
 
     public boolean equals(final Object o) {
@@ -140,6 +155,9 @@ class GeminiGenerationConfig {
         final Object this$topP = this.getTopP();
         final Object other$topP = other.getTopP();
         if (this$topP == null ? other$topP != null : !this$topP.equals(other$topP)) return false;
+        final Object this$thinkingConfig = this.getThinkingConfig();
+        final Object other$thinkingConfig = other.getThinkingConfig();
+        if (this$thinkingConfig == null ? other$thinkingConfig != null : !this$thinkingConfig.equals(other$thinkingConfig)) return false;
         return true;
     }
 
@@ -166,11 +184,13 @@ class GeminiGenerationConfig {
         result = result * PRIME + ($topK == null ? 43 : $topK.hashCode());
         final Object $topP = this.getTopP();
         result = result * PRIME + ($topP == null ? 43 : $topP.hashCode());
+        final Object $thinkingConfig = this.getThinkingConfig();
+        result = result * PRIME + ($thinkingConfig == null ? 43 : $thinkingConfig.hashCode());
         return result;
     }
 
     public String toString() {
-        return "GeminiGenerationConfig(stopSequences=" + this.getStopSequences() + ", responseMimeType=" + this.getResponseMimeType() + ", responseSchema=" + this.getResponseSchema() + ", candidateCount=" + this.getCandidateCount() + ", maxOutputTokens=" + this.getMaxOutputTokens() + ", temperature=" + this.getTemperature() + ", topK=" + this.getTopK() + ", topP=" + this.getTopP() + ")";
+        return "GeminiGenerationConfig(stopSequences=" + this.getStopSequences() + ", responseMimeType=" + this.getResponseMimeType() + ", responseSchema=" + this.getResponseSchema() + ", candidateCount=" + this.getCandidateCount() + ", maxOutputTokens=" + this.getMaxOutputTokens() + ", temperature=" + this.getTemperature() + ", topK=" + this.getTopK() + ", topP=" + this.getTopP() + ", thinkingConfig=" + this.getThinkingConfig() + ")";
     }
 
     public static class GeminiGenerationConfigBuilder {
@@ -182,6 +202,7 @@ class GeminiGenerationConfig {
         private Double temperature;
         private Integer topK;
         private Double topP;
+        private ThinkingConfig thinkingConfig;
 
         GeminiGenerationConfigBuilder() {
         }
@@ -226,12 +247,17 @@ class GeminiGenerationConfig {
             return this;
         }
 
+        public GeminiGenerationConfigBuilder topP(ThinkingConfig thinkingConfig) {
+            this.thinkingConfig = thinkingConfig;
+            return this;
+        }
+
         public GeminiGenerationConfig build() {
-            return new GeminiGenerationConfig(this.stopSequences, this.responseMimeType, this.responseSchema, this.candidateCount, this.maxOutputTokens, this.temperature, this.topK, this.topP);
+            return new GeminiGenerationConfig(this.stopSequences, this.responseMimeType, this.responseSchema, this.candidateCount, this.maxOutputTokens, this.temperature, this.topK, this.topP, this.thinkingConfig);
         }
 
         public String toString() {
-            return "GeminiGenerationConfig.GeminiGenerationConfigBuilder(stopSequences=" + this.stopSequences + ", responseMimeType=" + this.responseMimeType + ", responseSchema=" + this.responseSchema + ", candidateCount=" + this.candidateCount + ", maxOutputTokens=" + this.maxOutputTokens + ", temperature=" + this.temperature + ", topK=" + this.topK + ", topP=" + this.topP + ")";
+            return "GeminiGenerationConfig.GeminiGenerationConfigBuilder(stopSequences=" + this.stopSequences + ", responseMimeType=" + this.responseMimeType + ", responseSchema=" + this.responseSchema + ", candidateCount=" + this.candidateCount + ", maxOutputTokens=" + this.maxOutputTokens + ", temperature=" + this.temperature + ", topK=" + this.topK + ", topP=" + this.topP + ",thinkingConfig=" + this.thinkingConfig + ")";
         }
     }
 }
